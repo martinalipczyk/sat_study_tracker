@@ -4,6 +4,9 @@ import Home from "./pages/Home";
 import Scores from "./pages/Scores";
 import Questions from "./pages/Questions";
 import Login from "./pages/Login";
+import Test from "./pages/Test";
+import TestResults from "./pages/TestResults";
+
 
 export default function App() {
   return (
@@ -14,6 +17,9 @@ export default function App() {
           <Route path="/scores" element={<Scores />} />
           <Route path="/questions" element={<Questions />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/test" element={<Test />} />
+          <Route path="/test/results" element={<TestResults />} />
+
         </Routes>
       </Layout>
     </Router>

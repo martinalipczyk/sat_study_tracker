@@ -3,19 +3,21 @@ import { useNavigate } from "react-router-dom";
 
 const SECTIONS = {
   Math: ["Math Section 1", "Math Section 2"],
-  English: ["English Section"],
+  English: ["English Section 1", "English Section 2"],
   "Full Test": [
-    "English Section",
-    "Break",
     "Math Section 1",
-    "Math Section 2"
+    "Math Section 2",
+    "Break",
+    "English Section 1",
+    "English Section 2"
   ]
 };
 
 const DURATIONS = {
   "Math Section 1": 35 * 60,
   "Math Section 2": 35 * 60,
-  "English Section": 35 * 60,
+  "English Section 1": 32 * 60,
+  "English Section 2": 32 * 60,
   "Break": 10 * 60
 };
 
@@ -26,7 +28,6 @@ export default function Test() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
 
-  // Load section plan
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("currentTest"));
     if (!data || !data.sectionType) {
@@ -38,7 +39,6 @@ export default function Test() {
     setTimeLeft(DURATIONS[sectionList[0]]);
   }, [navigate]);
 
-  // Countdown logic
   useEffect(() => {
     if (timeLeft <= 0) return;
 

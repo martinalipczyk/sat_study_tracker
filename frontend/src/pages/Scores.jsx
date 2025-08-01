@@ -1,124 +1,101 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Scores() {
-  const [scores, setScores] = useState(() => {
-    try {
-      const stored = localStorage.getItem("scores");
-      const parsed = stored ? JSON.parse(stored) : [];
-      console.log("Loaded from localStorage:", parsed);
-      return parsed;
-    } catch (e) {
-      console.error("Failed to parse scores from localStorage:", e);
-      return [];
-    }
-  });
+  const [scores, setScores] = useState([]);
+  const location = useLocation();
 
-  const [form, setForm] = useState({ date: "", section: "Math", score: "" });
-
-  // Save scores to localStorage whenever they change
   useEffect(() => {
-    console.log("Saving to localStorage:", scores);
-    localStorage.setItem("scores", JSON.stringify(scores));
-  }, [scores]);
+    const stored = localStorage.getItem("scores");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setScores(parsed);
+        }
+      } catch (err) {
+        console.error("Error parsing scores:", err);
+      }
+    }
+  }, []);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!form.date || !form.section || !form.score) return;
-    const newScore = {
-      id: crypto.randomUUID(),
-      ...form,
-      score: parseInt(form.score),
-    };
-    setScores([newScore, ...scores]);
-    setForm({ date: "", section: "Math", score: "" });
-  };
+  const params = new URLSearchParams(location.search);
+  const filterTestName = params.get("testName");
+  const displayScores = filterTestName
+    ? scores.filter((s) => s.testName === filterTestName)
+    : scores;
 
   const handleDelete = (id) => {
-    setScores(scores.filter((s) => s.id !== id));
+    const updated = scores.filter((s) => s.id !== id);
+    setScores(updated);
+    localStorage.setItem("scores", JSON.stringify(updated));
   };
 
   return (
     <div className="page">
-      <h2>Score Tracker</h2>
+      <h2>{filterTestName ? `Scores for "${filterTestName}"` : "Past Scores"}</h2>
 
-      <form onSubmit={handleSubmit} style={{ marginBottom: "1.5rem" }}>
-        <label>
-          Date:
-          <input
-            type="date"
-            name="date"
-            value={form.date}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        <label>
-          Section:
-          <select
-            name="section"
-            value={form.section}
-            onChange={handleChange}
-          >
-            <option>Math</option>
-            <option>Reading</option>
-            <option>Writing</option>
-            <option>Full Test</option>
-          </select>
-        </label>
-        <label>
-          Score:
-          <input
-            type="number"
-            name="score"
-            value={form.score}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        <button
-          type="submit"
-          className="btn-primary"
-          style={{ marginLeft: "1rem" }}
-        >
-          Add Score
-        </button>
-      </form>
-
-      {scores.length === 0 ? (
+      {displayScores.length === 0 ? (
         <p>No scores logged yet.</p>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
+        <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "1rem" }}>
+          <thead style={{ backgroundColor: "#f0f0f0" }}>
             <tr>
-              <th style={{ textAlign: "left" }}>Date</th>
-              <th>Section</th>
-              <th>Score</th>
-              <th></th>
+              <th style={thStyle}>Date</th>
+              <th style={thStyle}>Section</th>
+              <th style={thStyle}>Score</th>
+              <th style={thStyle}>Test Name</th>
+              <th style={thStyle}>Delete</th>
             </tr>
           </thead>
           <tbody>
-            {scores.map(({ id, date, section, score }) => (
-              <tr key={id}>
-                <td>{date}</td>
-                <td>{section}</td>
-                <td>{score}</td>
-                <td>
-                  <button
-                    onClick={() => handleDelete(id)}
-                    style={{ color: "red", cursor: "pointer" }}
-                  >
-                    ✕
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {displayScores.map(
+              ({ id, date, section, score, totalScore, mathScore, englishScore, testName }) => (
+                <tr key={id} style={{ borderBottom: "1px solid #ddd" }}>
+                  <td style={tdStyle}>{date || "—"}</td>
+                  <td style={{ ...tdStyle, textAlign: "center" }}>{section || "—"}</td>
+                  <td style={{ ...tdStyle, textAlign: "center" }}>
+                    {score !== undefined
+                      ? score
+                      : totalScore !== undefined
+                      ? `Total: ${totalScore} (M: ${mathScore}, E: ${englishScore})`
+                      : "—"}
+                  </td>
+                  <td style={tdStyle}>
+                    <Link to={`/questions?testName=${encodeURIComponent(testName || "")}`}>
+                      {testName || "Untitled"}
+                    </Link>
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: "center" }}>
+                    <button
+                      onClick={() => handleDelete(id)}
+                      style={{
+                        color: "red",
+                        border: "none",
+                        background: "transparent",
+                        fontSize: "1.2rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              )
+            )}
           </tbody>
         </table>
       )}
     </div>
   );
 }
+
+const thStyle = {
+  padding: "0.75rem",
+  textAlign: "left",
+  borderBottom: "2px solid #ccc",
+};
+
+const tdStyle = {
+  padding: "0.75rem",
+};
