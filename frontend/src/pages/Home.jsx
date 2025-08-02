@@ -9,8 +9,7 @@ export default function Home() {
 
   const handleStart = () => {
     // Save test setup to localStorage
-    sessionStorage.setItem("currentTest", JSON.stringify({ testName, section: sectionType }));
-    setShowModal(false);
+    localStorage.setItem("currentTest", JSON.stringify({ testName, sectionType }));    setShowModal(false);
     navigate("/test");
   };
 
